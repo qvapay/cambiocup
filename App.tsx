@@ -1,117 +1,133 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   SafeAreaView,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  useColorScheme,
   View,
+  Dimensions,
 } from 'react-native';
+import {randomize, averageData} from './utils/helpers';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+const WIDTH = Dimensions.get('window').width;
+const API_URL = 'https://www.cambiocup.com/api';
+const MALACHITE = '#53dd6c';
+const CRIMSON = '#d7263d';
 
 function App(): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const [coin, setCoin] = useState('CUP');
+  const [data, setData] = useState({
+    value: 0,
+    average: 0,
+    isLoading: true,
+    error: null,
+  });
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+  // useEffect to retrieve the value of the selected coin [CUP, MLC] and the value of the coin
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(API_URL);
+        const json = await response.json();
+        const coinData = coin === 'CUP' ? json.cupHistory : json.mlcHistory;
+        const {first, average} = averageData(coinData);
+        const value = parseFloat(
+          Number.parseFloat(randomize(first.value, 0.5).toString()).toFixed(
+            coin === 'CUP' ? 2 : 4,
+          ),
+        );
+        setData({value, average, isLoading: false, error: null});
+      } catch (error) {
+        setData({...data, isLoading: false, error: error.message});
+      }
+    };
+
+    fetchData();
+  }, [coin]);
+
+  const bgColor = data.value < data.average ? MALACHITE : CRIMSON;
+
+  if (data.isLoading) {
+    return <Text>Loading...</Text>;
+  }
+
+  if (data.error) {
+    return <Text>Error: {data.error}</Text>;
+  }
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+    <SafeAreaView style={[styles.safearea, {backgroundColor: bgColor}]}>
+      <StatusBar barStyle={'light-content'} />
+      <View style={[styles.container, {backgroundColor: bgColor}]}>
+        <Text style={[styles.centerText, styles.h1]}>
+          Tasa de cambio en Cuba
+        </Text>
+
+        <View style={styles.infoSection}>
+          <View style={{flexDirection: 'row'}}>
+            <Text style={styles.coinName}>CUP</Text>
+            <Text style={styles.coinName}>MLC</Text>
+          </View>
+
+          <Text style={styles.coinValue}>${data.value}</Text>
         </View>
-      </ScrollView>
+
+        <Text style={[styles.centerText, styles.h2]}>
+          Un servicio gratuito de QvaPay
+        </Text>
+        <Text style={[styles.centerText, styles.h2]}>
+          Todos los derechos reservados
+        </Text>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  safearea: {
+    flex: 1,
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+  container: {
+    flex: 1,
+    padding: 20,
+    alignContent: 'center',
+    justifyContent: 'space-between',
   },
-  sectionDescription: {
-    marginTop: 8,
+  infoSection: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  h1: {
+    fontSize: 20,
+    color: 'white',
+    textAlign: 'center',
+    fontFamily: 'Barlow-Regular',
+  },
+  h2: {
     fontSize: 18,
-    fontWeight: '400',
+    color: 'white',
+    textAlign: 'center',
+    fontFamily: 'Barlow-Regular',
   },
-  highlight: {
-    fontWeight: '700',
+  centerText: {
+    textAlign: 'center',
+  },
+  coinName: {
+    fontSize: 30,
+    color: 'white',
+    textAlign: 'center',
+    marginHorizontal: 10,
+    fontFamily: 'Barlow-Bold',
+  },
+  coinValue: {
+    fontSize: WIDTH / 4.5,
+    color: 'white',
+    textAlign: 'center',
+    fontFamily: 'Barlow-Black',
+  },
+  coinRow: {
+    flexDirection: 'row',
   },
 });
 
