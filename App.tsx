@@ -43,6 +43,8 @@ function App(): JSX.Element {
     };
 
     fetchData();
+    const intervalId = setInterval(fetchData, 10000);
+    return () => clearInterval(intervalId);
   }, [coin]);
 
   const bgColor = data.value < data.average ? MALACHITE : CRIMSON;
