@@ -33,7 +33,9 @@ function App(): JSX.Element {
         const coinData = coin === 'CUP' ? json.cupHistory : json.mlcHistory;
         const {first, average} = averageData(coinData);
         const value = parseFloat(
-          Number.parseFloat(randomize(first.value, coin === 'CUP' ? 0.5 : 0.01).toString()).toFixed(coin === 'CUP' ? 2 : 4),
+          Number.parseFloat(
+            randomize(first.value, coin === 'CUP' ? 0.5 : 0.01).toString(),
+          ).toFixed(coin === 'CUP' ? 2 : 4),
         );
         setData({value, average, isLoading: false, error: null});
       } catch (error) {
@@ -72,10 +74,16 @@ function App(): JSX.Element {
         <View style={styles.infoSection}>
           <View style={{flexDirection: 'row'}}>
             <Pressable onPress={() => handlePress('CUP')}>
-              <Text style={styles.coinName}>CUP</Text>
+              <Text
+                style={[styles.coinName, {opacity: coin === 'CUP' ? 1 : 0.4}]}>
+                CUP
+              </Text>
             </Pressable>
             <Pressable onPress={() => handlePress('MLC')}>
-              <Text style={styles.coinName}>MLC</Text>
+              <Text
+                style={[styles.coinName, {opacity: coin === 'MLC' ? 1 : 0.4}]}>
+                MLC
+              </Text>
             </Pressable>
           </View>
 
