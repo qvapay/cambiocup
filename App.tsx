@@ -6,6 +6,7 @@ import {
   Text,
   View,
   Dimensions,
+  Pressable,
 } from 'react-native';
 import {randomize, averageData} from './utils/helpers';
 
@@ -32,9 +33,7 @@ function App(): JSX.Element {
         const coinData = coin === 'CUP' ? json.cupHistory : json.mlcHistory;
         const {first, average} = averageData(coinData);
         const value = parseFloat(
-          Number.parseFloat(randomize(first.value, 0.5).toString()).toFixed(
-            coin === 'CUP' ? 2 : 4,
-          ),
+          Number.parseFloat(randomize(first.value, coin === 'CUP' ? 0.5 : 0.01).toString()).toFixed(coin === 'CUP' ? 2 : 4),
         );
         setData({value, average, isLoading: false, error: null});
       } catch (error) {
@@ -57,6 +56,11 @@ function App(): JSX.Element {
     return <Text>Error: {data.error}</Text>;
   }
 
+  // Set coin to the selected coin
+  const handlePress = (coin: string) => {
+    setCoin(coin);
+  };
+
   return (
     <SafeAreaView style={[styles.safearea, {backgroundColor: bgColor}]}>
       <StatusBar barStyle={'light-content'} />
@@ -67,8 +71,12 @@ function App(): JSX.Element {
 
         <View style={styles.infoSection}>
           <View style={{flexDirection: 'row'}}>
-            <Text style={styles.coinName}>CUP</Text>
-            <Text style={styles.coinName}>MLC</Text>
+            <Pressable onPress={() => handlePress('CUP')}>
+              <Text style={styles.coinName}>CUP</Text>
+            </Pressable>
+            <Pressable onPress={() => handlePress('MLC')}>
+              <Text style={styles.coinName}>MLC</Text>
+            </Pressable>
           </View>
 
           <Text style={styles.coinValue}>${data.value}</Text>
